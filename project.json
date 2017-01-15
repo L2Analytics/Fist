@@ -1,0 +1,22 @@
+{
+  "version": "1.0.0-*",
+  "buildOptions": {
+    "debugType": "portable",
+    "emitEntryPoint": true,
+    "compilerName": "fsc",
+    "compile": {
+      "includeFiles": [
+        "Program.fs"
+      ]
+    }
+  },
+  "dependencies": {
+    "FsCheck":"2.6.2"
+  },
+  "tools": {
+    "dotnet-compile-fsc":"1.0.0-preview2-*"
+  },
+  "frameworks": {
+    "net45":{}
+  }
+}
