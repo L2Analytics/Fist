@@ -18,16 +18,29 @@ let importanceSampler (priorSample: unit -> 'theta) (logLikelihood: 'theta -> Lo
     Seq.initInfinite sample
 
 
-let makeExpectation (samples: array<'theta*float>) : ('theta -> float) -> float =
-    let maxWeight = 
-        samples
+let normalize (logWeights: array<'theta*LogWeight>) :array<'theta*float> =
+    let maxWeight =
+        logWeights
         |> Array.map snd
         |> Array.max
-    let expectation (f: 'theta -> float) =
-        samples
-        |> Array.map (fun (theta, w) -> (f theta)*w)
+
+    let unnormalized =
+        logWeights
+        |> Array.map (fun (theta, lw) -> (theta, exp (lw-maxWeight)))
+    
+    let weightSum = 
+        unnormalized
+        |> Array.map snd
         |> Array.sum
-    expectation
+
+    Array.map (fun (theta, w) -> (theta, w/weightSum)) unnormalized
+
+
+let expectation (samples: array<'theta*float>) : ('theta -> float) -> float =
+    fun (f: 'theta -> float) ->
+            samples
+            |> Array.map (fun (theta, w) -> (f theta)*w)
+            |> Array.sum
 
 type RVBuilder() =
     member this.Bind(m, f) = Option.bind f m
