@@ -18,6 +18,19 @@ let importanceSampler (priorSample: unit -> 'theta) (logLikelihood: 'theta -> Lo
     Seq.initInfinite sample
 
 
+let effectiveSamples (weights: float array) =
+    let numerator =
+        weights
+        |> Array.sum
+        |> fun x -> x**2.0
+    let denominator =
+        weights
+        |> Array.map (fun x -> x**2.0)
+        |> Array.sum
+    
+    numerator/denominator
+
+
 let normalize (logWeights: array<'theta*LogWeight>) :array<'theta*float> =
     let maxWeight =
         logWeights
