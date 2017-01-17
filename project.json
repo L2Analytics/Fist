@@ -7,6 +7,7 @@
     "compile": {
       "includeFiles": [
         "Types.fs",
+        "Bijection.fs",
         "RV.fs",
         "Sampler.fs",
         "Program.fs"

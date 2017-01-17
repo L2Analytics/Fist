@@ -25,14 +25,19 @@ let effectiveSamples (weights: float array) =
 
 
 let normalize (logWeights: array<'theta*LogWeight>) :array<'theta*float> =
-    let maxWeight =
+    (*
+    let median x = 
+        let a = Array.sort x
+        a.[a.Length / 2]
+    *)
+    let normWeight =
         logWeights
         |> Array.map snd
         |> Array.max
 
     let unnormalized =
         logWeights
-        |> Array.map (fun (theta, lw) -> (theta, exp (lw-maxWeight)))
+        |> Array.map (fun (theta, lw) -> (theta, exp (lw-normWeight)))
     
     let weightSum = 
         unnormalized
