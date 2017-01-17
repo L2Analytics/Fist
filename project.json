@@ -6,6 +6,9 @@
     "compilerName": "fsc",
     "compile": {
       "includeFiles": [
+        "Types.fs",
+        "RV.fs",
+        "Sampler.fs",
         "Program.fs"
       ]
     }
