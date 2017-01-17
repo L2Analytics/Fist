@@ -13,7 +13,7 @@ type Response = float
 let e = RV.Gaussian 0.0 trueSigma
 
 let data :(Input*Response) list =
-    [1..100]
+    [1..10]
     |> List.map (fun x -> (float x, trueBeta*(float x)+(RV.sample e)))
 
 
@@ -50,7 +50,14 @@ let likelihood theta =
 let main argv = 
     printfn "Sampling..."
     let sampler = Sampler.importanceSampler prior.Sample (fun theta -> (List.map snd data) |> (RV.logDensity (likelihood theta)))
-    let rawSamples = (Seq.take 1000000 sampler) |> Array.ofSeq
+    let rawSamples =
+        (Seq.take 100000 sampler)
+        |> Seq.fold (fun (cum, n) next ->
+                        if n % 1000 = 0 then printfn "Samples: %i" n
+                        (List.Cons (next, cum), n+1)
+        ) ([], 0)
+        |> fst
+        |> Array.ofList
     let maxWeight =
         rawSamples
         |> Array.map snd
@@ -64,6 +71,7 @@ let main argv =
     printf "%A\n\n" ((Array.map (fun (theta, w) -> (w, w-maxWeight)) rawSamples) |> List.ofSeq |> List.sortBy snd)
     printfn "True Beta: %f" trueBeta
     printfn "Posterior Mean: %f" (E (fun theta -> theta.Beta))
+    printfn "Posterior Var: %f" ((E (fun theta -> theta.Beta**2.0)) - (E (fun theta -> theta.Beta))**2.0)
     printfn "Effective Samples: %f" (samples |> Array.map snd |> Sampler.effectiveSamples)
     printfn "\n\n"
     printfn "True Sigma: %f" trueSigma
