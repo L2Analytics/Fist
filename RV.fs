@@ -50,6 +50,15 @@ let indep (x: RV<'b>) (y: RV<'a>) :RV<'a*'b>=
 
 let (=|=) = indep
 
+(*
+//Clean this up
+let foldConditional (xs: ('a -> RV<'a>) list) (start: RV<'a>) =
+    {new RV<'a list> with
+        member this.Sample () = List.fold (fun state next -> ((sample (next (List.head state)))::state) (sample start) (List.rev xs))
+        member this.LogDensity zs =
+            List.zip xs zs
+            |> List.fold (fun state next -> state
+*)
 
 let indepList (x: list<RV<'a>>) :RV<'a list> =
     {new RV<'a list> with

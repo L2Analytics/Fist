@@ -13,7 +13,7 @@ type Response = float
 let e = RV.Gaussian 0.0 trueSigma
 
 let data :(Input*Response) list =
-    [1..10]
+    [1..100]
     |> List.map (fun x -> (float x, trueBeta*(float x)+(RV.sample e)))
 
 

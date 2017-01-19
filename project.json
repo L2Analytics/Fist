@@ -2,7 +2,6 @@
   "version": "1.0.0-*",
   "buildOptions": {
     "debugType": "portable",
-    "emitEntryPoint": true,
     "compilerName": "fsc",
     "compile": {
       "includeFiles": [
@@ -10,6 +9,7 @@
         "Bijection.fs",
         "RV.fs",
         "Sampler.fs",
+        "Model.fs",
         "Program.fs"
       ]
     }
