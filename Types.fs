@@ -14,12 +14,6 @@ type Bijection<'a, 'b> = {
 type Model<'X, 'Y> = 'X*'Y array -> ('X -> RV<'Y>) 
 
 
-
-
-type IBayes =
-    abstract Prior: unit -> RV<'Theta>
-    abstract Likelihood: 'Theta -> 'X -> RV<'Y>
-
 type BayesianModel<'Theta, 'X, 'Y> = {
     Prior : RV<'Theta>
     Likelihood : 'Theta -> 'X -> RV<'Y>

@@ -5,13 +5,13 @@
     "compilerName": "fsc",
     "compile": {
       "includeFiles": [
+        "Utilities.fs",
         "Types.fs",
         "Bijection.fs",
         "RV.fs",
         "Sampler.fs",
         "Model.fs",
-        "Bayes.fs",
-        "Program.fs"
+        "Bayes.fs"
       ]
     }
   },

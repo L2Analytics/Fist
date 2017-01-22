@@ -3,6 +3,7 @@ module Fist.RV
 open MathNet.Numerics.Distributions
 open MathNet.Numerics.Random
 
+
 let sample (x: RV<'a>) = x.Sample ()
 let logDensity (x: RV<'a>) (a: 'a) = x.LogDensity a
 
