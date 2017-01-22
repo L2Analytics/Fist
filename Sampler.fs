@@ -11,6 +11,10 @@ let expectation (samples: array<'theta*float>) : ('theta -> float) -> float =
 
 let sample (s: ISampler) (m: BayesianModel<'Theta, 'X, 'Y>) = s.Sample m
 
+
+module Stopping =
+    let x = 0
+
 module IS =
 
     type LogWeight = float
