@@ -1,13 +1,15 @@
 module Fist.Sampler
 
+open Nessos.Streams
+
+
 type LogWeight = float
 
-let importanceSampler (priorSample: unit -> 'theta) (logLikelihood: 'theta -> LogWeight) : seq<'theta*LogWeight> =
+let importanceSampler (priorSample: unit -> 'theta) (logLikelihood: 'theta -> LogWeight) : Stream<'theta*LogWeight> =
     let sample x =
         let theta = priorSample ()
         (theta, logLikelihood theta)
-    Seq.initInfinite sample
-
+    Stream.initInfinite sample
 
 
 let effectiveSamples (weights: float array) =

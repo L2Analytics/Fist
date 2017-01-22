@@ -2,6 +2,7 @@
 
 open System
 open FsCheck
+open Nessos.Streams
 
 let trueSigma = 3.0
 let trueBeta = 3.14
@@ -51,8 +52,7 @@ let main argv =
     printfn "Sampling..."
     let sampler = Sampler.importanceSampler prior.Sample (fun theta -> (List.map snd data) |> (RV.logDensity (likelihood theta)))
     let rawSamples =
-        (Seq.take 100000 sampler)
-        |> Seq.fold (fun (cum, n) next ->
+        |> Stream.fold (fun (cum, n) next ->
                         if n % 1000 = 0 then printfn "Samples: %i" n
                         (List.Cons (next, cum), n+1)
         ) ([], 0)

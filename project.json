@@ -17,7 +17,8 @@
   "dependencies": {
     "FsCheck": "2.7.0",
     "MathNet.Numerics": "3.17.0",
-    "MathNet.Numerics.FSharp": "3.17.0"
+    "MathNet.Numerics.FSharp": "3.17.0",
+    "Streams": "0.4.1"
   },
   "tools": {
     "dotnet-compile-fsc":"1.0.0-preview2-*"

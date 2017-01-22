@@ -10,3 +10,7 @@ type Bijection<'a, 'b> = {
     Inv : 'b -> 'a
 }
 
+type Model<'Theta, 'X, 'Y> = {
+    Prior : RV<'Theta>
+    Likelihood : 'Theta -> 'X -> RV<'Y>
+}
