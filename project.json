@@ -10,6 +10,7 @@
         "RV.fs",
         "Sampler.fs",
         "Model.fs",
+        "Bayes.fs",
         "Program.fs"
       ]
     }
