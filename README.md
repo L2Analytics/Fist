@@ -6,6 +6,9 @@
 ## General Bayesian
 * Model Averaging
 * Posterior diagnostics
+* Sampling
+    * Time-based stopping criteria
+    * Parallelization
 
 ## General Model Functionality
 * Deviance-based performance
