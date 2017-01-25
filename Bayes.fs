@@ -6,9 +6,9 @@ open System.Diagnostics
 
 
 
+
 type BayesianPredictor<'Theta, 'X, 'Y> = {
     Likelihood : 'Theta -> 'X -> RV<'Y>
-    Posterior : RV<'Theta>
     Samples : ('Theta*float) array
 } with
     interface IPredictor<'X, 'Y> with
@@ -16,7 +16,7 @@ type BayesianPredictor<'Theta, 'X, 'Y> = {
             {new RV<'Y> with
                 member rv.Sample () =
                     x
-                    |> this.Likelihood (this.Posterior.Sample())
+                    |> this.Likelihood (RV.sampleWeighted this.Samples)
                     |> RV.sample
                 //This is definitely something that could be abstracted, but at the cost of efficiency...perhaps reconsider
                 member rv.LogDensity y =
@@ -38,7 +38,6 @@ type BayesianModel<'Theta, 'X, 'Y> = {
             let samples = this.Sampler.Generate this data |> this.Sampler.Stopping
             {
                 BayesianPredictor.Likelihood = this.Likelihood
-                Posterior = RV.Discrete samples
                 Samples = samples
             } :> IPredictor<'X, 'Y>
 and ISampler<'Theta, 'X, 'Y> = 

@@ -70,12 +70,17 @@ type RVBuilder() =
     member this.Bind(m, f) = Option.bind f m
     member this.Return(x) = Some x
 
+let sampleWeighted (x: ('a*float) array) =
+    let C = new Categorical (Array.map snd x)
+    fst x.[C.Sample()]
 
+(*
 let Discrete (x: ('a*float) array) =
     let C = new Categorical (Array.map snd x)
     {new RV<'a> with
         member this.Sample () = fst x.[C.Sample()]
         member this.LogDensity z = 0.5}
+*)
 
 (*
 let Discrete (x: ('a*float) array) =
