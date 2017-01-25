@@ -16,14 +16,19 @@ type Bijection<'a, 'b> = {
 type IPredictor<'X, 'Y> =
     abstract Predict: 'X -> RV<'Y>
 
+
 type IModel<'X, 'Y> =
     abstract Fit: 'X*'Y array -> IPredictor<'X, 'Y>
 
 
-type BayesianModel<'Theta, 'X, 'Y> = {
-    Prior : RV<'Theta>
-    Likelihood : 'Theta -> 'X -> RV<'Y>
-}
+type IBayesianPredictor<'Theta, 'X, 'Y> =
+    inherit IPredictor<'X, 'Y>
+    abstract member Samples : ('Theta*float) array
+
+type IBayesianModel<'Theta, 'X, 'Y> =
+    inherit IModel<'X, 'Y>
+    abstract member Prior : RV<'Theta>
+    abstract member Likelihood : 'Theta -> 'X -> RV<'Y>
 
 type ISampler = 
-    abstract Sample: BayesianModel<'Theta, 'X, 'Y> -> IModel<'X, 'Y>
+    abstract Sample: IBayesianModel<'Theta, 'X, 'Y> -> ('Theta*float) array
