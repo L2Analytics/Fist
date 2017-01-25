@@ -28,10 +28,10 @@ type BayesianPredictor<'Theta, 'X, 'Y> = {
                     |> Array.sum}
 
 //The type constraint is needed only because of the implementation of RV.Discrete
-type BayesianModel<'Theta, 'X, 'Y when 'Theta: comparison> = {
+type BayesianModel<'Theta, 'X, 'Y> = {
     Prior : RV<'Theta>
     Likelihood : 'Theta -> 'X -> RV<'Y>
-    Sampler : ISampler
+    Sampler : ISampler<'Theta, 'X, 'Y>
 } with
     interface IModel<'X, 'Y> with
         member this.Fit data =
@@ -41,7 +41,7 @@ type BayesianModel<'Theta, 'X, 'Y when 'Theta: comparison> = {
                 Posterior = RV.Discrete samples
                 Samples = samples
             } :> IPredictor<'X, 'Y>
-and ISampler = 
+and ISampler<'Theta, 'X, 'Y> = 
     abstract Generate: BayesianModel<'Theta, 'X, 'Y> -> ('X * 'Y) array -> Stream<'Theta*float>
     abstract Stopping: Stream<'Theta*float> -> ('Theta*float) array
 
@@ -51,7 +51,7 @@ let expectation (samples: array<'theta*float>) : ('theta -> float) -> float =
             |> Array.map (fun (theta, w) -> (f theta)*w)
             |> Array.sum
 
-let sample (s: ISampler) (data: ('X * 'Y) array) (m: BayesianModel<'Theta, 'X, 'Y>) = s.Generate m data |> s.Stopping
+let sample (s: ISampler<'Theta, 'X, 'Y>) (data: ('X * 'Y) array) (m: BayesianModel<'Theta, 'X, 'Y>) = s.Generate m data |> s.Stopping
 
 
 
@@ -71,6 +71,21 @@ module Stopping =
 module IS =
 
     type LogWeight = float
+
+    let New (stopping: Stream<'Theta*float> -> ('Theta*float) array) =
+        {new ISampler<'Theta, 'X, 'Y> with
+            member this.Generate model data =
+                let lik z =
+                    data
+                    |> Array.map (fun (x, y) -> RV.logDensity (model.Likelihood z x) y)
+                    |> Array.sum
+                
+                let sample (x:int) =
+                    let theta = model.Prior.Sample ()
+                    (theta, lik theta)
+                
+                Stream.initInfinite sample
+            member this.Stopping s = stopping s}
 
     let importanceSampler (priorSample: unit -> 'theta) (logLikelihood: 'theta -> LogWeight) : Stream<'theta*LogWeight> =
         let sample x =
