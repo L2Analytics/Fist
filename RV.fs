@@ -70,6 +70,19 @@ type RVBuilder() =
     member this.Bind(m, f) = Option.bind f m
     member this.Return(x) = Some x
 
+let Discrete (x: ('a*float) array) =
+    let tabulated =
+        x
+        |> Array.groupBy fst
+        |> Array.map (fun (a, aps) -> (a, aps |> (Array.map snd) |> Array.sum))
+    let pmf = Map.ofArray tabulated
+    let C = new Categorical (Array.map snd tabulated)
+    {new RV<'a> with
+        member this.Sample () = fst tabulated.[C.Sample()]
+        member this.LogDensity z =
+            match Map.tryFind z pmf with
+            | Some p -> p
+            | None -> 0.0}
 
 let Gaussian (mean: float) (stddev: float) =
     let Z = new Normal(mean, stddev)

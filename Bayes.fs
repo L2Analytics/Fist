@@ -27,7 +27,8 @@ type BayesianPredictor<'Theta, 'X, 'Y> = {
                                     |> (fun x -> x*w))
                     |> Array.sum}
 
-type BayesianModel<'Theta, 'X, 'Y> = {
+//The type constraint is needed only because of the implementation of RV.Discrete
+type BayesianModel<'Theta, 'X, 'Y when 'Theta: comparison> = {
     Prior : RV<'Theta>
     Likelihood : 'Theta -> 'X -> RV<'Y>
     Sampler : ISampler
@@ -37,7 +38,7 @@ type BayesianModel<'Theta, 'X, 'Y> = {
             let samples = this.Sampler.Generate this data |> this.Sampler.Stopping
             {
                 BayesianPredictor.Likelihood = this.Likelihood
-                Posterior = RV.discrete samples
+                Posterior = RV.Discrete samples
                 Samples = samples
             } :> IPredictor<'X, 'Y>
 and ISampler = 

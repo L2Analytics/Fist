@@ -15,6 +15,7 @@
     }
   },
   "dependencies": {
+    "FSharp.Core": "4.0.1.5",
     "FsCheck": "2.7.0",
     "MathNet.Numerics": "3.17.0",
     "MathNet.Numerics.FSharp": "3.17.0",
