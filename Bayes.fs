@@ -5,14 +5,35 @@ open System
 open System.Diagnostics
 
 
-type IBayesianPredictor<'Theta, 'X, 'Y> =
-    inherit IPredictor<'X, 'Y>
-    abstract member Samples : ('Theta*float) array
 
-type IBayesianModel<'Theta, 'X, 'Y> =
-    inherit IModel<'X, 'Y>
-    abstract member Prior : RV<'Theta>
-    abstract member Likelihood : 'Theta -> 'X -> RV<'Y>
+type BayesianPredictor<'Theta, 'X, 'Y> = {
+    Likelihood : 'Theta -> 'X -> RV<'Y>
+    Posterior : RV<'Theta>
+    Samples : ('Theta*float) array
+} with
+    interface IPredictor<'X, 'Y> with
+        member this.Predict x =
+            {new RV<'Y> with
+                member rv.Sample () =
+                    x
+                    |> this.Likelihood (this.Posterior.Sample())
+                    |> RV.sample
+                member rv.LogDensity y =
+                    this.Samples
+                    |> Array.map (fun (theta, w) ->
+                        (this.Likelihood theta x)
+                            |> (fun r -> RV.logDensity r y)
+                            |> (fun x -> x*w))
+                    |> Array.sum
+            }
+
+type BayesianModel<'Theta, 'X, 'Y> = {
+    Prior : RV<'Theta>
+    Likelihood : 'Theta -> 'X -> RV<'Y>
+    Sampler : ISampler
+} with
+    interface IModel<'X, 'Y> with
+        member this.Fit data = 
 
 type ISampler = 
     abstract Generate: IBayesianModel<'Theta, 'X, 'Y> -> Stream<'Theta*float>

@@ -82,3 +82,5 @@ let Exponential (lambda: float) =
     {new RV<float> with
         member this.Sample () = T.Sample ()
         member this.LogDensity t = T.DensityLn t}
+
+let x = new DiscreteUniform (0, 100)

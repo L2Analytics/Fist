@@ -18,17 +18,6 @@ type IPredictor<'X, 'Y> =
 
 
 type IModel<'X, 'Y> =
-    abstract Fit: 'X*'Y array -> IPredictor<'X, 'Y>
+    abstract Fit: ('X*'Y) array -> IPredictor<'X, 'Y>
 
 
-type IBayesianPredictor<'Theta, 'X, 'Y> =
-    inherit IPredictor<'X, 'Y>
-    abstract member Samples : ('Theta*float) array
-
-type IBayesianModel<'Theta, 'X, 'Y> =
-    inherit IModel<'X, 'Y>
-    abstract member Prior : RV<'Theta>
-    abstract member Likelihood : 'Theta -> 'X -> RV<'Y>
-
-type ISampler = 
-    abstract Sample: IBayesianModel<'Theta, 'X, 'Y> -> ('Theta*float) array
