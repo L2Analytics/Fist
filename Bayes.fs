@@ -34,8 +34,6 @@ module Stopping =
         let timer = new Stopwatch()
 
         let f s =
-            //is this necessary?
-            Stream.take 1 s |> ignore
             timer.Start ()
             s
             |> Stream.takeWhile (fun _ -> timer.ElapsedMilliseconds < int64 (runtime*1000))
