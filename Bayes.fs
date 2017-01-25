@@ -50,7 +50,7 @@ let expectation (samples: array<'theta*float>) : ('theta -> float) -> float =
             |> Array.map (fun (theta, w) -> (f theta)*w)
             |> Array.sum
 
-let sample (s: ISampler) (m: IBayesianModel<'Theta, 'X, 'Y>) = s.Generate m |> s.Stopping
+let sample (s: ISampler) (data: ('X * 'Y) array) (m: BayesianModel<'Theta, 'X, 'Y>) = s.Generate m data |> s.Stopping
 
 
 
