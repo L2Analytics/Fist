@@ -18,14 +18,14 @@ type BayesianPredictor<'Theta, 'X, 'Y> = {
                     x
                     |> this.Likelihood (this.Posterior.Sample())
                     |> RV.sample
+                //This is definitely something that could be abstracted, but at the cost of efficiency...perhaps reconsider
                 member rv.LogDensity y =
                     this.Samples
                     |> Array.map (fun (theta, w) ->
-                        (this.Likelihood theta x)
-                            |> (fun r -> RV.logDensity r y)
-                            |> (fun x -> x*w))
-                    |> Array.sum
-            }
+                                    (this.Likelihood theta x)
+                                    |> (fun r -> RV.logDensity r y)
+                                    |> (fun x -> x*w))
+                    |> Array.sum}
 
 type BayesianModel<'Theta, 'X, 'Y> = {
     Prior : RV<'Theta>
@@ -33,10 +33,15 @@ type BayesianModel<'Theta, 'X, 'Y> = {
     Sampler : ISampler
 } with
     interface IModel<'X, 'Y> with
-        member this.Fit data = 
-
-type ISampler = 
-    abstract Generate: IBayesianModel<'Theta, 'X, 'Y> -> Stream<'Theta*float>
+        member this.Fit data =
+            let samples = this.Sampler.Generate this data |> this.Sampler.Stopping
+            {
+                BayesianPredictor.Likelihood = this.Likelihood
+                Posterior = RV.discrete samples
+                Samples = samples
+            } :> IPredictor<'X, 'Y>
+and ISampler = 
+    abstract Generate: BayesianModel<'Theta, 'X, 'Y> -> ('X * 'Y) array -> Stream<'Theta*float>
     abstract Stopping: Stream<'Theta*float> -> ('Theta*float) array
 
 let expectation (samples: array<'theta*float>) : ('theta -> float) -> float =
