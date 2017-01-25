@@ -86,12 +86,6 @@ module IS =
                 Stream.initInfinite sample
             member this.Stopping s = stopping s}
 
-    let importanceSampler (priorSample: unit -> 'theta) (logLikelihood: 'theta -> LogWeight) : Stream<'theta*LogWeight> =
-        let sample x =
-            let theta = priorSample ()
-            (theta, logLikelihood theta)
-        Stream.initInfinite sample
-
 
     let effectiveSamples (weights: float array) =
         let numerator =
