@@ -1,6 +1,17 @@
-#r "../bin/Release/net45/Fist.dll"
+#I "../bin/Debug/net45/"
+
+#r "Fist.dll"
+#r "MathNet.Numerics.dll"
+#r "MathNet.Numerics.FSharp.dll"
+#r "Streams.dll"
+
+open System
+open MathNet.Numerics.Distributions
+open MathNet.Numerics.Random
+open Nessos.Streams
 
 open Fist
+open Fist.Bayes
 
 let trueSigma = 3.0
 let trueBeta = 3.14
@@ -39,10 +50,12 @@ let prior =
 let lik theta (input:Input) = RV.Gaussian (theta.Beta*input) theta.Sigma
 
 
-let likelihood theta =
-    data
-    |> List.map (fst>>(lik theta))
-    |> RV.indepList
+let model =
+    {
+        Prior = prior
+        Likelihood = lik
+        Sampler = Bayes.IS.New (Stopping.seconds 10)
+    }
 
 
 

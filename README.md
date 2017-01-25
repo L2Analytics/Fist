@@ -3,6 +3,10 @@
 
 # Todo
 
+## Urgent
+* Updated IS implementation doesn't have a great way of normalizing the weights.
+
+
 ## General Bayesian
 * Model Averaging
 * Posterior diagnostics
