@@ -64,6 +64,7 @@ module Stopping =
             s
             |> Stream.takeWhile (fun _ -> timer.ElapsedMilliseconds < int64 (runtime*1000))
             |> Stream.toArray
+            |> (fun s -> timer.Reset(); s)
         f
 
 
