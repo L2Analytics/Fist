@@ -9,7 +9,6 @@
         "Types.fs",
         "Bijection.fs",
         "RV.fs",
-        "Sampler.fs",
         "Model.fs",
         "Bayes.fs"
       ]
