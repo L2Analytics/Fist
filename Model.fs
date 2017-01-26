@@ -15,16 +15,16 @@ let performance (predictor: IPredictor<'X, 'Y>) (deviance: IDeviance<'Y>) (data:
     |> Stream.ofArray
     |> Stream.map (fun (x, y) -> (y, predictor.Predict x))
     |> Stream.map (fun (y, yhat) -> (deviance.Error y y0, deviance.Error y yhat))
-    |> Stream.fold (fun (total, total0) (e, e0) -> (total+e, total0+e0)) (0.0, 0.0)
-    |> fun (t, t0) -> 1.0-t/t0
+    |> Stream.fold (fun (total0, total) (e0, e) -> (total0+e0, total+e)) (0.0, 0.0)
+    |> fun (t0, t) -> 1.0-t/t0
 
 
 module Deviance =
     let Gaussian =
-        let mean (x: RV<'float>) =
+        let mean (x: RV<float>) =
             [|1..100|]
             |> Array.map (fun _ -> x.Sample ())
             |> Array.average
-        {new IDeviance<'float> with
+        {new IDeviance<float> with
             member this.Error y rv = (y - (mean rv))**2.0
             member this.Default ys = RV.Constant (Array.average ys)}
