@@ -48,10 +48,6 @@ let expectation (samples: array<'theta*float>) : ('theta -> float) -> float =
             |> Array.map (fun (theta, w) -> (f theta)*w)
             |> Array.sum
 
-
-
-
-
 module Stopping =
     let seconds (runtime: int) :Stream<'Theta*float> -> ('Theta*float) array =
         let timer = new Stopwatch()
@@ -68,25 +64,6 @@ module Stopping =
 module IS =
 
     type LogWeight = float
-
-    
-
-(*
-    let New (stopping: Stream<'Theta*float> -> ('Theta*float) array) =
-        {new ISampler with
-            member this.Generate model data =
-                let lik z =
-                    data
-                    |> Array.map (fun (x, y) -> RV.logDensity (model.Likelihood z x) y)
-                    |> Array.sum
-                
-                let sample (x:int) =
-                    let theta = model.Prior.Sample ()
-                    (theta, lik theta)
-                
-                Stream.initInfinite sample
-            member this.Stopping s = stopping s}
-*)
 
     let effectiveSamples (weights: float array) =
         let numerator =
