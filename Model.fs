@@ -28,3 +28,18 @@ module Deviance =
         {new IDeviance<float> with
             member this.Error y rv = (y - (mean rv))**2.0
             member this.Default ys = RV.Constant (Array.average ys)}
+    
+    let Bernoulli =
+        let toFloat = function
+                | true -> 1.0
+                | false -> 0.0
+        let mean (x: RV<bool>) =
+            [|1..100|]
+            |> Array.map (fun _ -> x.Sample () |> toFloat)
+            |> Array.average
+        {new IDeviance<bool> with
+            member this.Error y rv =
+                match y with
+                | true -> log (mean rv)
+                | false -> log (1.0 - (mean rv))
+            member this.Default ys = ys |> Array.map toFloat |> Array.average |> RV.Bernoulli}
