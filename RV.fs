@@ -21,7 +21,7 @@ let (<*>) (f: RV<'a -> 'b>) (x: RV<'a>) =
         member this.LogDensity b = }
 *)
 
-let Pure (x: 'a) =
+let Constant (x: 'a) =
     {new RV<'a> with
         member this.Sample () = x
         member this.LogDensity _ = 0.0}
