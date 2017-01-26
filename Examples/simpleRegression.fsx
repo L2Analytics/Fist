@@ -22,9 +22,9 @@ type Response = float
 
 let e = RV.Gaussian 0.0 trueSigma
 
-let data :(Input*Response) list =
-    [1..100]
-    |> List.map (fun x -> (float x, trueBeta*(float x)+(RV.sample e)))
+let data :(Input*Response) array =
+    [|1..100|]
+    |> Array.map (fun x -> (float x, trueBeta*(float x)+(RV.sample e)))
 
 
 type Theta = {
@@ -50,40 +50,19 @@ let prior =
 let lik theta (input:Input) = RV.Gaussian (theta.Beta*input) theta.Sigma
 
 
-let model =
-    {
-        Prior = prior
-        Likelihood = lik
-        Sampler = Bayes.IS.New (Stopping.seconds 10)
-    }
+let model = Bayes.createModel prior lik (Bayes.IS.create (Bayes.Stopping.seconds 10))
 
 
 
 printfn "Sampling..."
-let sampler = Sampler.importanceSampler prior.Sample (fun theta -> (List.map snd data) |> (RV.logDensity (likelihood theta)))
-let rawSamples =
-    (Seq.take 100000 sampler)
-    |> Seq.fold (fun (cum, n) next ->
-                    if n % 1000 = 0 then printfn "Samples: %i" n
-                    (List.Cons (next, cum), n+1)
-    ) ([], 0)
-    |> fst
-    |> Array.ofList
-let maxWeight =
-    rawSamples
-    |> Array.map snd
-    |> Array.max
-let samples =
-    rawSamples
-    |> Sampler.normalize
-let E = Sampler.expectation samples
+let pred = model.Fit data
+let E = Bayes.expectation pred.Samples
+
 //printf "%A\n\n" samples
-printfn "Maxweight: %f" maxWeight
-printf "%A\n\n" ((Array.map (fun (theta, w) -> (w, w-maxWeight)) rawSamples) |> List.ofSeq |> List.sortBy snd)
 printfn "True Beta: %f" trueBeta
 printfn "Posterior Mean: %f" (E (fun theta -> theta.Beta))
 printfn "Posterior Var: %f" ((E (fun theta -> theta.Beta**2.0)) - (E (fun theta -> theta.Beta))**2.0)
-printfn "Effective Samples: %f" (samples |> Array.map snd |> Sampler.effectiveSamples)
+printfn "Effective Samples: %f" (pred.Samples |> Array.map snd |> Bayes.IS.effectiveSamples)
 printfn "\n\n"
 printfn "True Sigma: %f" trueSigma
 printfn "Posterior Mean: %f" (E (fun theta -> theta.Sigma))
