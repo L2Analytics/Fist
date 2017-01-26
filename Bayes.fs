@@ -12,8 +12,8 @@ type IBayesianModel<'Theta, 'X, 'Y> =
     inherit IModel<'X, 'Y, IBayesianPredictor<'Theta, 'X, 'Y>>
     abstract member Prior: RV<'Theta>
     abstract member Likelihood: 'Theta -> 'X -> RV<'Y>
-    abstract member Sampler: ISampler
-and ISampler =
+    abstract member Sampler: ISampler<'Theta, 'X, 'Y>
+and ISampler<'Theta, 'X, 'Y> =
     abstract member Sample: IBayesianModel<'Theta, 'X, 'Y> -> ('X*'Y) array -> ('Theta*float) array
 
 let createPredictor (samples: ('Theta*float) array) (likelihood: 'Theta -> 'X -> RV<'Y>) =
@@ -34,7 +34,7 @@ let createPredictor (samples: ('Theta*float) array) (likelihood: 'Theta -> 'X ->
                                     |> (fun x -> x*w))
                     |> Array.sum}}
 
-let createModel (prior: RV<'Theta>) (likelihood: 'Theta -> 'X -> RV<'Y>) (sampler: ISampler) =
+let createModel (prior: RV<'Theta>) (likelihood: 'Theta -> 'X -> RV<'Y>) (sampler: ISampler<'Theta, 'X, 'Y>) =
     {new IBayesianModel<'Theta, 'X, 'Y> with
         member this.Prior = prior
         member this.Likelihood t x = likelihood t x
@@ -68,6 +68,8 @@ module Stopping =
 module IS =
 
     type LogWeight = float
+
+    
 
 (*
     let New (stopping: Stream<'Theta*float> -> ('Theta*float) array) =
@@ -117,3 +119,19 @@ module IS =
 
         Array.map (fun (theta, w) -> (theta, w/weightSum)) unnormalized
 
+
+    let create stopping =
+        {new ISampler<'Theta, 'X, 'Y> with
+            member this.Sample model data =
+                let lik z =
+                    data
+                    |> Array.map (fun (x, y) -> RV.logDensity (model.Likelihood z x) y)
+                    |> Array.sum
+                
+                let sample x =
+                    let theta = model.Prior.Sample ()
+                    (theta, lik theta)
+                
+                Stream.initInfinite sample
+                |> stopping
+                |> normalize}
