@@ -66,4 +66,4 @@ printfn "Effective Samples: %f" (pred.Samples |> Array.map snd |> Bayes.IS.effec
 printfn "\n\n"
 printfn "True Sigma: %f" trueSigma
 printfn "Posterior Mean: %f" (E (fun theta -> theta.Sigma))
-
+printfn "Performance: %f" (Model.performance pred (Model.Deviance.Gaussian) data)
