@@ -4,9 +4,44 @@ open Nessos.Streams
 open System
 open System.Diagnostics
 
+type IBayesianPredictor<'Theta, 'X, 'Y> =
+    inherit IPredictor<'X, 'Y>
+    abstract member Samples: ('Theta*float) array
 
+type IBayesianModel<'Theta, 'X, 'Y> =
+    inherit IModel<'X, 'Y, IBayesianPredictor<'Theta, 'X, 'Y>>
+    abstract member Prior: RV<'Theta>
+    abstract member Likelihood: 'Theta -> 'X -> RV<'Y>
+    abstract member Sampler: ISampler
+and ISampler =
+    abstract member Sample: IBayesianModel<'Theta, 'X, 'Y> -> ('X*'Y) array -> ('Theta*float) array
 
+let createPredictor (samples: ('Theta*float) array) (likelihood: 'Theta -> 'X -> RV<'Y>) =
+    {new IBayesianPredictor<'Theta, 'X, 'Y> with
+        member this.Samples = samples
+        member this.Predict x =
+            {new RV<'Y> with
+                member rv.Sample () =
+                    x
+                    |> likelihood (RV.sampleWeighted this.Samples)
+                    |> RV.sample
+                //This is definitely something that could be abstracted, but at the cost of efficiency...perhaps reconsider
+                member rv.LogDensity y =
+                    this.Samples
+                    |> Array.map (fun (theta, w) ->
+                                    (likelihood theta x)
+                                    |> (fun r -> RV.logDensity r y)
+                                    |> (fun x -> x*w))
+                    |> Array.sum}}
 
+let createModel (prior: RV<'Theta>) (likelihood: 'Theta -> 'X -> RV<'Y>) (sampler: ISampler) =
+    {new IBayesianModel<'Theta, 'X, 'Y> with
+        member this.Prior = prior
+        member this.Likelihood t x = likelihood t x
+        member this.Sampler = sampler
+        member this.Fit data = createPredictor (sampler.Sample this data) likelihood}
+
+(*
 type BayesianPredictor<'Theta, 'X, 'Y> = {
     Likelihood : 'Theta -> 'X -> RV<'Y>
     Samples : ('Theta*float) array
@@ -43,14 +78,13 @@ type BayesianModel<'Theta, 'X, 'Y> = {
 and ISampler<'Theta, 'X, 'Y> = 
     abstract Generate: BayesianModel<'Theta, 'X, 'Y> -> ('X * 'Y) array -> Stream<'Theta*float>
     abstract Stopping: Stream<'Theta*float> -> ('Theta*float) array
-
+*)
 let expectation (samples: array<'theta*float>) : ('theta -> float) -> float =
     fun (f: 'theta -> float) ->
             samples
             |> Array.map (fun (theta, w) -> (f theta)*w)
             |> Array.sum
 
-let sample (s: ISampler<'Theta, 'X, 'Y>) (data: ('X * 'Y) array) (m: BayesianModel<'Theta, 'X, 'Y>) = s.Generate m data |> s.Stopping
 
 
 
@@ -72,8 +106,9 @@ module IS =
 
     type LogWeight = float
 
+(*
     let New (stopping: Stream<'Theta*float> -> ('Theta*float) array) =
-        {new ISampler<'Theta, 'X, 'Y> with
+        {new ISampler with
             member this.Generate model data =
                 let lik z =
                     data
@@ -86,7 +121,7 @@ module IS =
                 
                 Stream.initInfinite sample
             member this.Stopping s = stopping s}
-
+*)
 
     let effectiveSamples (weights: float array) =
         let numerator =

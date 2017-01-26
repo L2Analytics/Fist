@@ -1,5 +1,6 @@
 module Fist.Bijection
 
+
 let New (f: 'a -> 'b) (fInv: 'b -> 'a) =
     {
         Fun = f
