@@ -111,4 +111,14 @@ let Exponential (lambda: float) =
         member this.Sample () = T.Sample ()
         member this.LogDensity t = T.DensityLn t}
 
-let x = new DiscreteUniform (0, 100)
+let Bernoulli (p: float) =
+    let B = new Bernoulli(p)
+    let toBool = function
+        | 0 -> false
+        | _ -> true
+    {new RV<bool> with
+        member this.Sample () = B.Sample() |> toBool
+        member this.LogDensity b =
+            match b with
+            | true -> log p
+            | false -> log (1.0 - p)}
