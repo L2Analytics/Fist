@@ -60,6 +60,9 @@ module Stopping =
             |> (fun s -> timer.Reset(); s)
         f
 
+    let samples (n: int) :Stream<'Theta*float> -> ('Theta*float) array =
+        (Stream.take n) >> Stream.toArray
+
 
 module IS =
 
