@@ -51,6 +51,19 @@ let indep (x: RV<'b>) (y: RV<'a>) :RV<'a*'b>=
 
 let (=|=) = indep
 
+
+let indepMap (m: Map<'a, RV<'b>>) :RV<Map<'a, 'b>> =
+    {new RV<Map<'a, 'b>> with
+        member this.Sample () =
+            Map.map (fun (a:'a) (b:RV<'b>) -> b.Sample ()) m
+        member this.LogDensity x =
+            m
+            |> Map.toArray
+            |> Array.map snd
+            |> Array.zip (Map.toArray x |> Array.map snd)
+            |> Array.map (fun (x, rv) -> rv.LogDensity x)
+            |> Array.sum}
+
 (*
 //Clean this up
 let foldConditional (xs: ('a -> RV<'a>) list) (start: RV<'a>) =
