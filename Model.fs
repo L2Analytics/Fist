@@ -37,9 +37,16 @@ module Deviance =
             [|1..100|]
             |> Array.map (fun _ -> x.Sample () |> toFloat)
             |> Array.average
+// This kind of thresholding is extra important given that we're computing the p from sampling        
+        let p (x: RV<bool>) =
+            mean x
+            |> max 0.05
+            |> min 0.95
         {new IDeviance<bool> with
             member this.Error y rv =
                 match y with
-                | true -> log (mean rv)
-                | false -> log (1.0 - (mean rv))
+                | true -> log (p rv)
+                | false -> log (1.0 - (p rv))
             member this.Default ys = ys |> Array.map toFloat |> Array.average |> RV.Bernoulli}
+
+            
