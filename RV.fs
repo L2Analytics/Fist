@@ -95,7 +95,7 @@ let Discrete (x: ('a*float) array) =
         member this.LogDensity z = 0.5}
 *)
 
-(*
+
 let Discrete (x: ('a*float) array) =
     let tabulated =
         x
@@ -105,18 +105,39 @@ let Discrete (x: ('a*float) array) =
     let C = new Categorical (Array.map snd tabulated)
     {new RV<'a> with
         member this.Sample () = fst tabulated.[C.Sample()]
+ //Note the issue with probability zero events...
         member this.LogDensity z =
             match Map.tryFind z pmf with
-            | Some p -> p
-            | None -> 0.0}
-*)
-
+            | Some p -> log p
+            | None -> -infinity}
 
 let Gaussian (mean: float) (stddev: float) =
     let Z = new Normal(mean, stddev)
     {new RV<float> with
         member this.Sample () = Z.Sample ()
         member this.LogDensity z = Z.DensityLn z}
+
+//Think about a sensible way to allow composition with Discrete
+//  for sure it could be done if Discrete also had a method Support()
+let smoothed (x: (float*float) array) (h: float) =
+    let tabulated =
+        x
+        |> Array.groupBy fst
+        |> Array.map (fun (a, aps) -> (a, aps |> (Array.map snd) |> Array.sum))
+    let pmf = Map.ofArray tabulated
+    let C = new Categorical (Array.map snd tabulated)
+    let Z = new Normal (0.0, h)
+    {new RV<float> with
+        member this.Sample () =
+            fst tabulated.[C.Sample()] + Z.Sample()
+        member this.LogDensity y =
+            pmf
+            |> Map.map (fun x p -> exp (Z.DensityLn(y-x)))
+            |> Map.toArray
+            |> Array.map snd
+            |> Array.sum
+            |> log}
+
 
 let Exponential (lambda: float) =
     let T = new Exponential(lambda)
