@@ -12,8 +12,17 @@ type RV<'a> =
     abstract member Sample : unit -> 'a
     abstract member LogDensity : 'a -> float
 
-type IPredictor<'X, 'Y> =
-    abstract Predict: 'X -> RV<'Y>
+type IDeviance<'Y, 'Prediction> =
+    abstract member Error: 'Y -> 'Prediction -> float
+    abstract member Default: 'Y array -> 'Prediction
 
-type IModel<'X, 'Y, 'P when 'P :> IPredictor<'X, 'Y>> =
-    abstract Fit: ('X*'Y) array -> 'P
+type IResponse<'Y, 'Prediction> =
+    abstract member RV: RV<'Y>
+    abstract member Prediction: 'Prediction
+    abstract member Deviance: IDeviance<'Y, 'Prediction>
+
+type IPredictor<'X, 'Y, 'Prediction> =
+    abstract member Predict: 'X -> 'Prediction
+
+type IModel<'X, 'Y, 'Prediction, 'Predictor when 'Predictor :> IPredictor<'X, 'Y, 'Prediction>> =
+    abstract member Fit: ('X*'Y) array -> 'Predictor

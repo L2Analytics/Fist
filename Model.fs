@@ -2,11 +2,9 @@ module Fist.Model
 
 open Nessos.Streams
 
-type IDeviance<'Y> =
-    abstract member Error: 'Y -> RV<'Y> -> float
-    abstract member Default: 'Y array -> RV<'Y>
 
-let performance (predictor: IPredictor<'X, 'Y>) (deviance: IDeviance<'Y>) (data: ('X*'Y) array) =
+
+let performance (predictor: IPredictor<'X, 'Y, 'Prediction>) (deviance: IDeviance<'Y, 'Prediction>) (data: ('X*'Y) array) =
     let y0 =
         data
         |> Array.map snd
@@ -21,32 +19,27 @@ let performance (predictor: IPredictor<'X, 'Y>) (deviance: IDeviance<'Y>) (data:
 
 module Deviance =
     let Gaussian =
-        let mean (x: RV<float>) =
-            [|1..100|]
-            |> Array.map (fun _ -> x.Sample ())
-            |> Array.average
-        {new IDeviance<float> with
-            member this.Error y rv = (y - (mean rv))**2.0
-            member this.Default ys = RV.Constant (Array.average ys)}
+        {new IDeviance<float, float> with
+            member this.Error y yhat = (y - yhat)**2.0
+            member this.Default ys = (Array.average ys)}
     
+//Currently just hard-code a threshold of .05--all predictions are truncated to [0.05, 0.95]    
     let Bernoulli =
         let toFloat = function
                 | true -> 1.0
                 | false -> 0.0
-        let mean (x: RV<bool>) =
-            [|1..100|]
-            |> Array.map (fun _ -> x.Sample () |> toFloat)
-            |> Array.average
-// This kind of thresholding is extra important given that we're computing the p from sampling        
-        let p (x: RV<bool>) =
-            mean x
-            |> max 0.05
-            |> min 0.95
-        {new IDeviance<bool> with
-            member this.Error y rv =
+        let threshold x = (min x 0.95) |> (max 0.05)    
+        {new IDeviance<bool, float> with
+            member this.Error y yhat =
+                let y0 = threshold yhat
                 match y with
-                | true -> log (p rv)
-                | false -> log (1.0 - (p rv))
-            member this.Default ys = ys |> Array.map toFloat |> Array.average |> RV.Bernoulli}
+                | true -> log y0
+                | false -> log (1.0 - y0)
+            member this.Default ys = ys |> Array.map toFloat |> Array.average}
 
-            
+module Response =
+    let Bernoulli p =
+        {new IResponse<bool, float> with
+            member this.RV = RV.Bernoulli p
+            member this.Prediction = p
+            member this.Deviance = Deviance.Bernoulli}

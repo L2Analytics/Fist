@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>Fist</id>
+    <version>0.0.2</version>
+    <authors>Martin J. Lenardon</authors>
+    <owners>Martin J. Lenardon</owners>
+    <licenseUrl>https://github.com/L2Analytics/Fist/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/L2Analytics/Fist/</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Importance Sampling for Bayesian models</description>
+    <releaseNotes>Initial tinkering</releaseNotes>
+    <copyright>Copyright 2017</copyright>
+    <tags>F# fsharp</tags>
+    <dependencies>
+      <dependency id="Streams" version="(0.4.1,)" />
+      <dependency id="MathNet.Numerics" version="(3.17.0,)" />
+      <dependency id="MathNet.Numerics.FSharp" version="(3.17.0,)" />
+    </dependencies>
+  </metadata>
+</package>
