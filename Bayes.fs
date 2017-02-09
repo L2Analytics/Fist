@@ -58,21 +58,21 @@ let createModel (prior: RV<'Theta>) (likelihood: 'Theta -> 'X -> IResponse<'Y, f
 
 
 
-
 module Stopping =
-    let seconds (runtime: int) :Stream<'Theta*float> -> ('Theta*float) array =
+    let seconds (runtime: int) :ParStream<'Theta*float> -> ('Theta*float) array =
         let timer = new Stopwatch()
 
         let f s =
             timer.Start ()
             s
-            |> Stream.takeWhile (fun _ -> timer.ElapsedMilliseconds < int64 (runtime*1000))
-            |> Stream.toArray
+            |> ParStream.toSeq
+            |> Seq.takeWhile (fun _ -> timer.ElapsedMilliseconds < int64 (runtime*1000))
+            |> Seq.toArray
             |> (fun s -> timer.Reset(); s)
         f
 
-    let samples (n: int) :Stream<'Theta*float> -> ('Theta*float) array =
-        (Stream.take n) >> Stream.toArray
+    let samples (n: int) :ParStream<'Theta*float> -> ('Theta*float) array =
+        (ParStream.take n) >> ParStream.toArray
 
 
 module IS =
@@ -123,7 +123,9 @@ module IS =
                     let theta = model.Prior.Sample ()
                     (theta, lik theta)
                 
-                Stream.initInfinite sample
+                
+                Seq.initInfinite sample
+                |> ParStream.ofSeq
                 |> stopping
                 |> normalize
                 |> RV.resample resamples}
