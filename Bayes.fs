@@ -11,11 +11,17 @@ type IBayesianPredictor<'Theta, 'X, 'Y, 'Prediction> =
 type IBayesianModel<'Theta, 'X, 'Y, 'Prediction> =
     inherit IModel<'X, 'Y, 'Prediction, IBayesianPredictor<'Theta, 'X, 'Y, 'Prediction>>
     abstract member Prior: RV<'Theta>
+    abstract member PriorPredictor: int -> IBayesianPredictor<'Theta, 'X, 'Y, 'Prediction>
     abstract member Likelihood: 'Theta -> 'X -> IResponse<'Y, 'Prediction>
     abstract member Sampler: ISampler<'Theta, 'X, 'Y>
 and ISampler<'Theta, 'X, 'Y> =
     abstract member Sample: IBayesianModel<'Theta, 'X, 'Y, 'Prediction> -> ('X*'Y) array -> ('Theta*float) array
 
+
+
+let equalWeight x=
+    let n = Array.length x
+    Array.zip x (Array.replicate n (1.0/(float n)))
 
 let expectation (samples: array<'theta*float>) : ('theta -> float) -> float =
     fun (f: 'theta -> float) ->
@@ -32,8 +38,19 @@ let createPredictor (samples: ('Theta*float) array) (likelihood: 'Theta -> 'X ->
 
 
 let createModel (prior: RV<'Theta>) (likelihood: 'Theta -> 'X -> IResponse<'Y, float>) (sampler: ISampler<'Theta, 'X, 'Y>) =
+    let priorPredictor n =
+        let samples =
+            Array.init n (fun _ -> prior.Sample())
+            |> equalWeight
+        {new IBayesianPredictor<'Theta, 'X, 'Y, float> with
+            member this.Samples = samples
+            member this.Predict x =
+                let E = expectation samples
+                E (fun theta -> (likelihood theta x).Prediction)}
+    
     {new IBayesianModel<'Theta, 'X, 'Y, float> with
         member this.Prior = prior
+        member this.PriorPredictor n = priorPredictor n
         member this.Likelihood t x = likelihood t x
         member this.Sampler = sampler
         member this.Fit data = createPredictor (sampler.Sample this data) likelihood}
