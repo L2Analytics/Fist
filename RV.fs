@@ -83,6 +83,12 @@ type RVBuilder() =
     member this.Bind(m, f) = Option.bind f m
     member this.Return(x) = Some x
 
+let resample (n: int) (x: ('a*float) array) : array<'a*float> =
+    let C = new Categorical (Array.map snd x)
+    Array.init n (fun _ -> (fst x.[C.Sample()]))
+    |> Utilities.equalWeight
+
+
 let sampleWeighted (x: ('a*float) array) =
     let C = new Categorical (Array.map snd x)
     fst x.[C.Sample()]

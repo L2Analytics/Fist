@@ -17,3 +17,6 @@ let permutation (x: 'T array) =
     y
 
 
+let equalWeight x=
+    let n = Array.length x
+    Array.zip x (Array.replicate n (1.0/(float n)))

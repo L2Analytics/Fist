@@ -1,8 +1,13 @@
 module Fist.Bayes
 
+
+
 open Nessos.Streams
 open System
 open System.Diagnostics
+
+open Fist.Utilities
+
 
 type IBayesianPredictor<'Theta, 'X, 'Y, 'Prediction> =
     inherit IPredictor<'X, 'Y, 'Prediction>
@@ -18,10 +23,6 @@ and ISampler<'Theta, 'X, 'Y> =
     abstract member Sample: IBayesianModel<'Theta, 'X, 'Y, 'Prediction> -> ('X*'Y) array -> ('Theta*float) array
 
 
-
-let equalWeight x=
-    let n = Array.length x
-    Array.zip x (Array.replicate n (1.0/(float n)))
 
 let expectation (samples: array<'theta*float>) : ('theta -> float) -> float =
     fun (f: 'theta -> float) ->
@@ -110,7 +111,7 @@ module IS =
         Array.map (fun (theta, w) -> (theta, w/weightSum)) unnormalized
 
 
-    let create stopping =
+    let create stopping resamples =
         {new ISampler<'Theta, 'X, 'Y> with
             member this.Sample model data =
                 let lik z =
@@ -124,4 +125,5 @@ module IS =
                 
                 Stream.initInfinite sample
                 |> stopping
-                |> normalize}
+                |> normalize
+                |> RV.resample resamples}
