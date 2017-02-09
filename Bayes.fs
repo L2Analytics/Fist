@@ -124,8 +124,12 @@ module IS =
                     (theta, lik theta)
                 
                 
-                Seq.initInfinite sample
+                Seq.initInfinite id
                 |> ParStream.ofSeq
+                |> ParStream.map (fun i -> 
+                    let theta = model.Prior.Sample ()
+                    (theta, lik theta)
+                )
                 |> stopping
                 |> normalize
                 |> RV.resample resamples}
