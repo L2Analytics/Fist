@@ -3,6 +3,7 @@ module Fist.RV
 open MathNet.Numerics.Distributions
 open MathNet.Numerics.Random
 
+let gen = Random.shared
 
 let sample (x: RV<'a>) = x.Sample ()
 let logDensity (x: RV<'a>) (a: 'a) = x.LogDensity a
@@ -90,7 +91,7 @@ let resample (n: int) (x: ('a*float) array) : array<'a*float> =
 
 
 let sampleWeighted (x: ('a*float) array) =
-    let C = new Categorical (Array.map snd x)
+    let C = new Categorical((Array.map snd x), gen)
     fst x.[C.Sample()]
 
 (*
@@ -108,7 +109,7 @@ let Discrete (x: ('a*float) array) =
         |> Array.groupBy fst
         |> Array.map (fun (a, aps) -> (a, aps |> (Array.map snd) |> Array.sum))
     let pmf = Map.ofArray tabulated
-    let C = new Categorical (Array.map snd tabulated)
+    let C = new Categorical((Array.map snd tabulated), gen)
     {new RV<'a> with
         member this.Sample () = fst tabulated.[C.Sample()]
  //Note the issue with probability zero events...
@@ -118,7 +119,7 @@ let Discrete (x: ('a*float) array) =
             | None -> -infinity}
 
 let Gaussian (mean: float) (stddev: float) =
-    let Z = new Normal(mean, stddev)
+    let Z = new Normal(mean, stddev, gen)
     {new RV<float> with
         member this.Sample () = Z.Sample ()
         member this.LogDensity z = Z.DensityLn z}
@@ -131,8 +132,8 @@ let smoothed (x: (float*float) array) (h: float) =
         |> Array.groupBy fst
         |> Array.map (fun (a, aps) -> (a, aps |> (Array.map snd) |> Array.sum))
     let pmf = Map.ofArray tabulated
-    let C = new Categorical (Array.map snd tabulated)
-    let Z = new Normal (0.0, h)
+    let C = new Categorical((Array.map snd tabulated), gen)
+    let Z = new Normal(0.0, h, gen)
     {new RV<float> with
         member this.Sample () =
             fst tabulated.[C.Sample()] + Z.Sample()
@@ -146,13 +147,13 @@ let smoothed (x: (float*float) array) (h: float) =
 
 
 let Exponential (lambda: float) =
-    let T = new Exponential(lambda)
+    let T = new Exponential(lambda, gen)
     {new RV<float> with
         member this.Sample () = T.Sample ()
         member this.LogDensity t = T.DensityLn t}
 
 let Bernoulli (p: float) =
-    let B = new Bernoulli(p)
+    let B = new Bernoulli(p, gen)
     let toBool = function
         | 0 -> false
         | _ -> true
