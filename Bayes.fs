@@ -5,6 +5,8 @@ module Fist.Bayes
 open Nessos.Streams
 open System
 open System.Diagnostics
+open FSharp.Collections.ParallelSeq
+
 
 open Fist.Utilities
 
@@ -59,15 +61,14 @@ let createModel (prior: RV<'Theta>) (likelihood: 'Theta -> 'X -> IResponse<'Y, f
 
 
 module Stopping =
-    let seconds (runtime: int) :ParStream<'Theta*float> -> ('Theta*float) array =
+    let seconds (runtime: int) :seq<'Theta*float> -> ('Theta*float) array =
         let timer = new Stopwatch()
 
         let f s =
             timer.Start ()
             s
-            |> ParStream.toSeq
-            |> Seq.takeWhile (fun _ -> timer.ElapsedMilliseconds < int64 (runtime*1000))
-            |> Seq.toArray
+            |> PSeq.takeWhile (fun _ -> timer.ElapsedMilliseconds < int64 (runtime*1000))
+            |> PSeq.toArray
             |> (fun s -> timer.Reset(); s)
         f
 
@@ -125,8 +126,7 @@ module IS =
                 
                 
                 Seq.initInfinite id
-                |> ParStream.ofSeq
-                |> ParStream.map (fun i -> 
+                |> PSeq.map (fun i -> 
                     let theta = model.Prior.Sample ()
                     (theta, lik theta)
                 )

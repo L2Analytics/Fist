@@ -1,5 +1,5 @@
 {
-  "version": "0.0.7",
+  "version": "0.0.8",
   "buildOptions": {
     "debugType": "portable",
     "compilerName": "fsc",
@@ -19,6 +19,7 @@
     "FsCheck": "2.7.0",
     "MathNet.Numerics": "3.17.0",
     "MathNet.Numerics.FSharp": "3.17.0",
+    "FSharp.Collections.ParallelSeq": "1.0.2",
     "Streams": "0.4.1"
   },
   "tools": {
